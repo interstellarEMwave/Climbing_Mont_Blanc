@@ -19,10 +19,6 @@ def main():
         outImages.append(naiveBlur(imageBuffers, kernels[i], iterations))
 
     print(len(outImages))
-    for i in range(len(outImages)):
-        drawImage(outImages[0])    
-        print("b")
-   
     print("Done")
 
     fig, ax = plt.subplots(5, 1)
