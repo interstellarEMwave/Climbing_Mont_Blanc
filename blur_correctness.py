@@ -24,7 +24,7 @@ def main():
     fig, ax = plt.subplots(5, 1)
     ax[0].plot(image)
     for i in range(len(outImages)):
-        ax[i+1].plot(outImages[i])
+        ax[i+1].imshow(outImages[i])
 
 def naiveBlur(imageBuffers, kernel, iterations):
     print("-"*100)
