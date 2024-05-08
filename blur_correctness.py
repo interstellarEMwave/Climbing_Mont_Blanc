@@ -21,7 +21,7 @@ def main():
     print(len(outImages))
     print("Done")
 
-    fig, ax = plt.subplots(5, 1, height=10*5)
+    fig, ax = plt.subplots(5, 1, figsize=(10, 10*5))
     ax[0].imshow(image)
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
