@@ -7,10 +7,10 @@ def main():
     image = imageio.v2.imread("./test_image_one_channel.png")
 
     kernels = [2, 3, 5, 8]
-    iterations = 3
+    iterations = 5
        
     imageBuffers = []
-    imageBuffers.append(np.copy(image))
+    imageBuffers.append(np.zeros(image.shape))
     imageBuffers.append(np.zeros(image.shape))
 
     outImages = []
@@ -25,6 +25,8 @@ def main():
     ax[0].imshow(image)
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
+
+
 
 def naiveBlur(imageBuffers, kernel, iterations):
     print("-"*100)
