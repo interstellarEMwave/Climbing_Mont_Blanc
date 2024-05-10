@@ -4,7 +4,8 @@ import imageio
 
 def main():
     
-    image = imageio.v2.imread("./test_image_one_channel.png")
+    tempImage = imageio.v2.imread("./test_image_one_channel.png")
+    image = makeAverageSumTable(tempImage)
 
     kernels = [2, 3, 5, 8]
     iterations = 5
@@ -26,7 +27,19 @@ def main():
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
 
-
+def makeAverageSumTable(imageIn):
+    imageOut = np.zeros(imageIn.shape, dtype = np.float32)
+    for i in range(len(imageIn)):
+        for j in range(len(imageIn[0])):
+            imageOut[i][j] = imageIn[i][j]
+            if(i > 0):
+                imageOut[i][j] += imageOut[i-1][j]
+            if(j > 0):
+                imageOut[i][j] += imageOut[i][j-1]
+            if(i > 0 and j > 0):
+                imageOut[i][j] -= imageOut[i-1][j-1]
+    
+    return imageOut
 
 def naiveBlur(imageBuffers, kernel, iterations):
     print("-"*100)
