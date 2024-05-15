@@ -4,30 +4,30 @@ import imageio
 
 def main():
     
-    tempImage = imageio.v2.imread("./test_image_one_channel.png")
-    image = makeAverageSumTable(tempImage)
-
+    #tempImage = imageio.v2.imread("./test_image_one_channel.png")
+    tempImage = make_test_image()
+    
     kernels = [2, 3, 5, 8]
     iterations = 5
        
     imageBuffers = []
-    imageBuffers.append(np.zeros(image.shape))
-    imageBuffers.append(np.zeros(image.shape))
+    imageBuffers.append(np.zeros(tempImage.shape))
+    imageBuffers.append(np.zeros(tempImage.shape))
 
     outImages = []
     for i in range(len(kernels)):
-        imageBuffers[0] = np.copy(image)
-        outImages.append(naiveBlur(imageBuffers, kernels[i], iterations))
+        imageBuffers[0] = np.copy(tempImage)
+        outImages.append(blurSummedAreaTable(imageBuffers, kernels[i], iterations))
 
     print(len(outImages))
     print("Done")
 
     fig, ax = plt.subplots(5, 1, figsize=(10, 10*5))
-    ax[0].imshow(image)
+    ax[0].imshow(tempImage)
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
 
-def makeAverageSumTable(imageIn):
+def makeSummedAreaTable(imageIn):
     imageOut = np.zeros(imageIn.shape, dtype = np.float32)
     for i in range(len(imageIn)):
         for j in range(len(imageIn[0])):
@@ -41,7 +41,7 @@ def makeAverageSumTable(imageIn):
     
     return imageOut
 
-def naiveBlur(imageBuffers, kernel, iterations):
+def blurSummedAreaTable(imageBuffers, kernel, iterations):
     print("-"*100)
     print("blurring with kernel:", kernel)
     print("-"*100)
@@ -52,9 +52,10 @@ def naiveBlur(imageBuffers, kernel, iterations):
     cursorIn = 0
     cursorOut = 1
     for it in range(iterations):
+        imageBuffers[cursorIn] = makeSummedAreaTable(imageBuffers[cursorIn]) 
         for i in range(bufferY):
             for j in range(bufferX):
-                imageBuffers[cursorOut][i][j] = naiveBlurStep(imageBuffers[cursorIn], kernel, i, j)
+                imageBuffers[cursorOut][i][j] = blurStep(imageBuffers[cursorIn], kernel, i, j)
         
         cursorIn = cursorOut
         cursorOut = abs(cursorIn-1)
@@ -68,15 +69,23 @@ def naiveBlur(imageBuffers, kernel, iterations):
 
 
 
-def naiveBlurStep(bufferIn, kernel, y, x): 
-    dividend = 0 
-    divisor = 0
+def blurStep(bufferIn, kernel, y, x):
+    ymin = y - kernel - 1
+    xmin = x - kernel - 1
+    ymax = min(y+kernel, len(bufferIn)-1)
+    xmax = min(x+kernel, len(bufferIn[0])-1)
+    
+    dividend = bufferIn[ymax][xmax]
 
-    for i in range(max(y-kernel, 0), min(y+kernel+1, len(bufferIn))):
-        for j in range(max(x-kernel, 0), min(x+kernel+1, len(bufferIn[0]))):
-            dividend += bufferIn[i][j]
-            divisor += 1
+    if not (ymin < 0 or xmin < 0):
+        dividend += bufferIn[ymin][xmin] 
+    if not (xmin < 0):
+        dividend -= bufferIn[ymax][xmin] 
+    if not (ymin < 0):
+        dividend -= bufferIn[ymin][xmax];
 
+    divisor = min(2*kernel+1, kernel + 1 + y, len(bufferIn) - y + kernel) * min(2*kernel+1, kernel + 1 + x, len(bufferIn) - x + kernel);
+  
     return dividend/float(divisor)  
 
 
