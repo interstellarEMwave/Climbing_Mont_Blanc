@@ -27,6 +27,9 @@ def main():
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
 
+
+
+
 def makeSummedAreaTable(imageIn):
     imageOut = np.zeros(imageIn.shape, dtype = np.float32)
     for i in range(len(imageIn)):
@@ -41,25 +44,44 @@ def makeSummedAreaTable(imageIn):
     
     return imageOut
 
+
+def makeSeparation(imageIn, kernel):
+    kernelWidth = kernel*2 + 1
+    out = []
+    for i in range(kernelWidth):
+        out.append([])
+        for j in range(kernelWidth):
+            out[i].append(np.zeros(((imageIn.shape[0] - i + 4*kernel) // kernelWidth, (imageIn.shape[1] - j + 4*kernel) // kernelWidth)))
+
+            for k in range(len(out[i][j])):
+                for l in range(len(out[i][j][k])):
+                    out[i][j][k][l] = imageIn[min(k*kernelWidth, len(imageIn)-1)][min(l*kernelWidth, len(imageIn[k]-1))]
+    
+    return out
+
+    
+
 def blurSummedAreaTable(imageBuffers, kernel, iterations):
     print("-"*100)
     print("blurring with kernel:", kernel)
     print("-"*100)
 
-    bufferY = len(imageBuffers[0])
-    bufferX = len(imageBuffers[0][0])
     
     cursorIn = 0
     cursorOut = 1
     for it in range(iterations):
-        imageBuffers[cursorIn] = makeSummedAreaTable(imageBuffers[cursorIn]) 
+        imageBuffers[cursorIn] = makeSummedAreaTable(imageBuffers[cursorOut])
+        shape = [len(imageBuffers[cursorIn], len(imageBuffers[cursorIn][0]), len(imageBuffers[cursorIn][0][0]), len(imageBuffers[cursorIn][0][0][0])]
+        
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                 for k in range(shape[2]):
+                    for l in range(shape[3]):
+                        imageBuffers[cursorOut][k*(2*kernel+1)
         for i in range(bufferY):
             for j in range(bufferX):
                 imageBuffers[cursorOut][i][j] = blurStep(imageBuffers[cursorIn], kernel, i, j)
-        
-        cursorIn = cursorOut
-        cursorOut = abs(cursorIn-1)
-    
+   
     outImage = np.zeros(imageBuffers[0].shape, dtype=np.uint8)
     for i in range(bufferY):
         for j in range(bufferX):
