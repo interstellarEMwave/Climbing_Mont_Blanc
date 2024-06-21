@@ -18,3 +18,4 @@ def make_test_image():
 
     imageio.v2.imwrite("test_image_one_channel.png", image)
     return image
+main()

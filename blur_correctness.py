@@ -30,7 +30,6 @@ def main():
 
 
 
-
 def makeSummedAreaTable(imageIn):
     imageOut = np.zeros(imageIn.shape, dtype = np.float32)
     for i in range(len(imageIn)):
@@ -83,7 +82,7 @@ def blurSummedAreaTable(imageBuffers, kernel, iterations):
 
         cursorIn = cursorOut
         cursorOut = abs(cursorIn-1)
-   
+
     outImage = np.zeros(imageBuffers[0].shape, dtype=np.uint8)
     for i in range(bufferY):
         for j in range(bufferX):
