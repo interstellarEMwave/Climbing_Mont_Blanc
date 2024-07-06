@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import imageio
 
+
 def main():
     
     #tempImage = imageio.v2.imread("./test_image_one_channel.png")
@@ -17,12 +18,12 @@ def main():
     outImages = []
     for i in range(len(kernels)):
         imageBuffers[0] = np.copy(tempImage)
-        outImages.append(blurSummedAreaTable(imageBuffers, kernels[i], iterations))
+        outImages.append(blurSummedAreaTableAsSections(imageBuffers, kernels[i], iterations))
 
     print(len(outImages))
     print("Done")
 
-    fig, ax = plt.subplots(5, 1, figsize=(10, 10*5))
+    fig2, ax = plt.subplots(5, 1, figsize=(10, 10*5))
     ax[0].imshow(tempImage)
     for i in range(len(outImages)):
         ax[i+1].imshow(outImages[i])
@@ -62,7 +63,7 @@ def makeSeparation(imageIn, kernel):
     return out
 
 
-def blurSummedAreaTable(imageBuffers, kernel, iterations):
+def blurSummedAreaTableAsSections(imageBuffers, kernel, iterations):
     print("-"*100)
     print("blurring with kernel:", kernel)
     print("-"*100)
@@ -72,13 +73,14 @@ def blurSummedAreaTable(imageBuffers, kernel, iterations):
 
     cursorIn = 0
     cursorOut = 1
+
     for it in range(iterations):
-        imageBuffers[cursorIn] = makeSummedAreaTable(imageBuffers[cursorIn])
+        imageBuffers[cursorIn] = makeSummedAreaTable(imageBuffers[cursorIn]) 
         image = makeSeparation(imageBuffers[cursorIn], kernel)
 
-        for i in range(bufferY):
-            for j in range(bufferX):
-                imageBuffers[cursorOut][i][j] = blurStep(image, bufferY, bufferX, kernel, i, j)
+        for y1 in range(2*kernel + 1):
+            for x1 in range(2*kernel + 1):
+                blurSection(image, imageBuffers[cursorOut], kernel, y1, x1)
 
         cursorIn = cursorOut
         cursorOut = abs(cursorIn-1)
@@ -90,30 +92,24 @@ def blurSummedAreaTable(imageBuffers, kernel, iterations):
 
     return outImage
 
-
-def blurStep(image, outImageHeight, outImageWidth, kernel, y, x):
+def blurSection(image, outImage, kernel, y1, x1):
+    outImageHeight = len(outImage)
+    outImageWidth = len(outImage[0])
     kernelWidth = 2*kernel + 1
-    ymin = y - kernel - 1
-    xmin = x - kernel - 1
-    y1 = (y+kernel)%kernelWidth
-    x1 = (x+kernel)%kernelWidth
-    y2 = (y+kernel)//kernelWidth
-    x2 = (x+kernel)//kernelWidth
 
-    
-    dividend = image[y1][x1][y2][x2]
+    for y2 in range(1-(y1+1)//(kernel+1), (outImageHeight+3*kernel-y1)//kernelWidth):
+        for x2 in range(1-(x1+1)//(kernel+1), (outImageWidth+3*kernel-x1)//kernelWidth):
+            out = image[y1][x1][y2][x2]
+            if(y2 > 0 and x2 > 0):
+                out += image[y1][x1][y2-1][x2-1]
+            if(y2 > 0):
+                out -= image[y1][x1][y2-1][x2]
+            if(x2 > 0):
+                out -= image[y1][x1][y2][x2-1]
 
-    if not (ymin < 0 or xmin < 0):
-        dividend += image[y1][x1][y2 - 1][x2 - 1]
-    if not (xmin < 0):
-        dividend -= image[y1][x1][y2][x2 - 1] 
-    if not (ymin < 0):
-        dividend -= image[y1][x1][y2 - 1][x2] 
+            divisor = min(kernelWidth,y2*kernelWidth + y1 + 1, outImageHeight - y2*kernelWidth - y1 +2*kernel) * min(kernelWidth, x2*kernelWidth + x1 + 1, outImageWidth - x2*kernelWidth - x1 + 2*kernel);
+            outImage[y2*kernelWidth + y1 - kernel][x2*kernelWidth + x1 - kernel] = out/float(divisor)
 
-    divisor = min(kernelWidth, kernel + 1 + y, outImageHeight - y + kernel) * min(kernelWidth, kernel + 1 + x, outImageWidth - x + kernel);
-
-    
-    return dividend/float(divisor)  
   
 
 
